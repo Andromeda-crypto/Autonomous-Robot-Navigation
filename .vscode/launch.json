@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/omanand/Autonomous-Robot-Navigation/include/math",
+      "program": "/Users/omanand/Autonomous-Robot-Navigation/include/math/build/Debug/outDebug"
+    }
+  ]
+}
