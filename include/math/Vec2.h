@@ -3,96 +3,91 @@
 #include <cassert>
 
 struct Vec2 {
-    float x;
-    float y;
+    double x;
+    double y;
 
-    Vec2() : x(0.0f), y(0.0f){}
-    Vec2(float xval, float yval) : x(xval) , y(yval) {}
-    Vec2 operator+(const Vec2 & other) const {
-        return Vec2(x + other.x, y+ other.y);
+    Vec2() : x(0.0), y(0.0) {}
+    Vec2(double xval, double yval) : x(xval), y(yval) {}
+
+    Vec2 operator+(const Vec2& other) const {
+        return Vec2(x + other.x, y + other.y);
     }
+
     Vec2 operator-(const Vec2& other) const {
         return Vec2(x - other.x, y - other.y);
     }
-    Vec2 operator*(float scalar) const {
+
+    Vec2 operator*(double scalar) const {
         return Vec2(x * scalar, y * scalar);
     }
-    Vec2 operator/(float scalar) const {
-    assert(scalar != 0.0f);
-    return Vec2(x / scalar, y / scalar);
+
+    Vec2 operator/(double scalar) const {
+        assert(scalar != 0.0);
+        return Vec2(x / scalar, y / scalar);
     }
+
     Vec2& operator+=(const Vec2& other) {
         x += other.x;
         y += other.y;
         return *this;
     }
+
     Vec2& operator-=(const Vec2& other) {
         x -= other.x;
         y -= other.y;
         return *this;
     }
-    Vec2& operator*=(float scalar) {
-    x *= scalar;
-    y *= scalar;
-    return *this;
-    }   
-    Vec2& operator/=(float scalar) {
-    assert(scalar != 0.0f);
-    x /= scalar;
-    y /= scalar;
-    return *this;
+
+    Vec2& operator*=(double scalar) {
+        x *= scalar;
+        y *= scalar;
+        return *this;
     }
 
-    float dot(const Vec2& other) const{
-        return x * other.x + y *other.y;
+    Vec2& operator/=(double scalar) {
+        assert(scalar != 0.0);
+        x /= scalar;
+        y /= scalar;
+        return *this;
     }
 
-    float cross(const Vec2& other) const{
-        return x *other.y - y *other.x;
+    double dot(const Vec2& other) const {
+        return x * other.x + y * other.y;
     }
 
-    float magnitude() const {
-        return std::sqrt(x* x + y* y);
+    double cross(const Vec2& other) const {
+        return x * other.y - y * other.x;
     }
 
-    float magnitudeSquared() const {
-    return x * x + y * y;
+    double magnitude() const {
+        return std::sqrt(x * x + y * y);
+    }
+
+    double magnitudeSquared() const {
+        return x * x + y * y;
     }
 
     Vec2 normalize() const {
-    float mag = magnitude();
-
-    if (mag == 0.0f)
-        return Vec2(0.0f,0.0f);
-
-    return Vec2(x / mag, y / mag);
+        double mag = magnitude();
+        if (mag == 0.0) return Vec2(0.0, 0.0);
+        return Vec2(x / mag, y / mag);
     }
 
-    Vec2 perpendicular() const{
-        return Vec2(-y,x);
+    Vec2 perpendicular() const {
+        return Vec2(-y, x);
     }
 
-    Vec2 rotate(float angle) const {
-    float c = std::cos(angle);
-    float s = std::sin(angle);
+    Vec2 rotate(double angle) const {
+        double c = std::cos(angle);
+        double s = std::sin(angle);
 
-    return Vec2(
-        x * c - y * s,
-        x * s + y * c
-    );
+        return Vec2(
+            x * c - y * s,
+            x * s + y * c
+        );
     }
 
-    static float distance(const Vec2& a, const Vec2& b) {
-    return (a - b).magnitude();
+    static double distance(const Vec2& a, const Vec2& b) {
+        return (a - b).magnitude();
     }
-
-    void normalizeInPlace() {
-        float mag = magnitude();
-        if (mag != 0.0f) {
-            x /= mag;
-            y /= mag;
-        }
-    }
-
 };
-
