@@ -1,21 +1,20 @@
-cmake_minimum_required(VERSION 3.16)
-
-project(AutonomousRobotNavigation)
+cmake_minimum_required(VERSION 3.15)
+project(RobotSimulator)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
 
 include_directories(include)
 
-
-add_executable(vec2_test
-    tests/vec2_test.cpp
+add_executable(simulator
+    src/main.cpp
+    src/physics/RigidBody.cpp
+    src/physics/World.cpp
 )
 
-
-target_compile_options(vec2_test PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
+target_link_libraries(simulator
+    SFML::Graphics
+    SFML::Window
+    SFML::System
 )
