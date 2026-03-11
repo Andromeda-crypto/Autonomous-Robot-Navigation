@@ -7,12 +7,14 @@ RigidBody::RigidBody(const Vec2& pos,double mass)
     position = pos;
     if (mass == 0.0) {
         inverseMass = 0.0;
+        isStatic = true;
     }
     else {
         inverseMass = 1/mass;
     }
 
     inverseInertia = 0.0;
+    updateAABB();
 }
 
 void RigidBody::applyForce(const Vec2 & f){
