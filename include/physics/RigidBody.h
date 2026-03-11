@@ -16,15 +16,17 @@ struct RigidBody
     double inverseMass = 0.0;
     double inverseInertia = 0.0;
 
-    RigidBody(const Vec2& pos, double mass);
-    void applyForce(const Vec2& f);
-    void integrate(double dt);
-    void applyTorque(double t);
+    double radius = 20.0;
+
+    bool isStatic = false;
 
     AABB aabb;
-    double radius = 20.0;
-    void updateAABB();
-    
-};
 
+    RigidBody(const Vec2& pos, double mass);
+
+    void applyForce(const Vec2& f);
+    void applyTorque(double t);
+    void integrate(double dt);
+    void updateAABB();
+};
 
