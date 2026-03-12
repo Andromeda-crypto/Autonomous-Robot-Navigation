@@ -15,7 +15,7 @@ private:
 
 public:
 
-    void addBody(const RigidBody& body);
+    RigidBody& addBody(const RigidBody& body);
 
     void step(double dt);
 

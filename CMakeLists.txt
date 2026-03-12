@@ -9,11 +9,14 @@ include_directories(include)
 
 add_executable(simulator
     src/main.cpp
+    src/math/Ray.cpp
     src/physics/RigidBody.cpp
+    src/physics/Robot.cpp
     src/physics/Collision.cpp
     src/physics/Resolver.cpp
     src/physics/World.cpp
     src/physics/SpatialHashGrid.cpp
+    src/sensors/Lidar.cpp
 )
 
 target_link_libraries(simulator

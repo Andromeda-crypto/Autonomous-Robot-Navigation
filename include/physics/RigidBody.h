@@ -20,6 +20,9 @@ struct RigidBody
 
     bool isStatic = false;
 
+    double staticFriction = 0.5;
+    double dynamicFriction = 0.3;
+
     AABB aabb;
 
     RigidBody(const Vec2& pos, double mass);
