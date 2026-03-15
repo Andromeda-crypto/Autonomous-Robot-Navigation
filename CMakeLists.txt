@@ -18,6 +18,7 @@ add_executable(simulator
     src/physics/SpatialHashGrid.cpp
     src/sensors/Lidar.cpp
     src/planning/RRT.cpp
+    src/planning/PathSmoother.cpp
 )
 
 target_link_libraries(simulator
