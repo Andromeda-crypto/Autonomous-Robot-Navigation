@@ -17,6 +17,7 @@ add_executable(simulator
     src/physics/World.cpp
     src/physics/SpatialHashGrid.cpp
     src/sensors/Lidar.cpp
+    src/planning/RRT.cpp
 )
 
 target_link_libraries(simulator
