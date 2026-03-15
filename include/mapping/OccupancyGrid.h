@@ -49,7 +49,7 @@ public:
         double maxD = std::min(distance, sensorMaxRange);
         bool hasHit = distance < sensorMaxRange * 0.95;
 
-        // Free space along the ray up to just before the hit (or max range).
+        // Free space along the ray up to just before the hit 
         double freeMax = hasHit ? (maxD - cellSize) : maxD;
         if (freeMax < 0.0)
             freeMax = 0.0;
@@ -76,7 +76,7 @@ private:
 
     std::vector<double> logOdds;
 
-    // Log-odds increments for free/occupied updates.
+    
     const double occIncrement = 0.85;
     const double freeIncrement = -0.4;
     const double minLogOdds = -4.0;

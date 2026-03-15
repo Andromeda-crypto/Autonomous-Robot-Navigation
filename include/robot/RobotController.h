@@ -32,7 +32,7 @@ public:
         return currentIndex < waypoints.size();
     }
 
-    // Main update: compute wheel speeds to move toward current waypoint.
+   
     void update(double dt)
     {
         if (!hasTarget())
@@ -48,8 +48,13 @@ public:
         if (distance < waypointTolerance)
         {
             currentIndex++;
+
             if (!hasTarget())
+            {
+                robot.setWheelSpeeds(0.0, 0.0);
+                robot.updateKinematics(dt);
                 return;
+            }
         }
 
         const Vec2 dir = (hasTarget() ? (waypoints[currentIndex] - robot.getPosition()) : Vec2(0.0, 0.0));
@@ -64,8 +69,8 @@ public:
 
         double currentSpeed = robot.body.velocity.magnitude();
 
-        // Simple policy: scale target speed with distance, up to maxSpeed.
-        double desiredSpeed = std::min(maxSpeed, distance);
+       
+        double desiredSpeed = std::min(maxSpeed, distance * 2.0);
         double speedError = desiredSpeed - currentSpeed;
         double speedCommand = speedPID.update(speedError, dt);
 
