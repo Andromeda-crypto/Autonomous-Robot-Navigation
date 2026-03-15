@@ -3,6 +3,7 @@
 
 #include <random>
 
+static std::mt19937 rng(std::random_device{}());
 void RRT::reset(const Vec2& start)
 {
     tree.clear();
@@ -143,12 +144,22 @@ bool RRT::expand(
         return false;
     }
 
+    std::uniform_real_distribution<double> prob(0.0,1.0);
+
     Vec2 sample;
 
-    if (rand() % 10 == 0)
+    if(prob(rng) < 0.1)
+    {
+        // 10% chance → sample the goal directly
         sample = goal;
+    }
     else
-        sample = randomPoint(grid);
+    {
+        std::uniform_real_distribution<double> xdist(0,800);
+        std::uniform_real_distribution<double> ydist(0,600);
+
+        sample = Vec2(xdist(rng), ydist(rng));
+    }
 
     int nearest = nearestNode(sample);
 
