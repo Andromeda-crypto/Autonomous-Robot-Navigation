@@ -19,6 +19,7 @@ add_executable(simulator
     src/sensors/Lidar.cpp
     src/planning/RRT.cpp
     src/planning/PathSmoother.cpp
+    src/planning/TrajectoryGenerator.cpp
 )
 
 target_link_libraries(simulator
