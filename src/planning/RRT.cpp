@@ -1,24 +1,32 @@
 #include "planning/RRT.h"
-#include <vector>
 
 #include <random>
+#include <limits>
+#include <algorithm>
 
 static std::mt19937 rng(std::random_device{}());
+
+RRT::RRT() {}
+
 void RRT::reset(const Vec2& start)
 {
     tree.clear();
-    tree.emplace_back(start, -1);
+    tree.emplace_back(start, -1, 0.0);
 }
 
-int RRT::nearestNode(const Vec2& point) const 
+const std::vector<Node>& RRT::getTree() const
+{
+    return tree;
+}
+
+int RRT::nearest(const Vec2& point) const
 {
     int bestIndex = 0;
-    double bestDist = (tree[0].position - point).magnitudeSquared();
+    double bestDist = std::numeric_limits<double>::max();
 
-    for (size_t i = 1; i < tree.size(); i++)
+    for (int i = 0; i < tree.size(); i++)
     {
-        double d =
-            (tree[i].position - point).magnitudeSquared();
+        double d = (tree[i].position - point).magnitude();
 
         if (d < bestDist)
         {
@@ -28,104 +36,72 @@ int RRT::nearestNode(const Vec2& point) const
     }
 
     return bestIndex;
+}
 
+std::vector<int> RRT::near(const Vec2& point) const
+{
+    std::vector<int> neighbors;
+
+    for (int i = 0; i < tree.size(); i++)
+    {
+        if ((tree[i].position - point).magnitude() < neighborRadius)
+        {
+            neighbors.push_back(i);
+        }
+    }
+
+    return neighbors;
 }
 
 Vec2 RRT::steer(const Vec2& from, const Vec2& to) const
-
 {
-    Vec2 direction = (to - from).normalize();
-    return from + direction * stepSize;
+    Vec2 dir = to - from;
+
+    double dist = dir.magnitude();
+
+    if (dist < stepSize)
+        return to;
+
+    return from + dir.normalize() * stepSize;
 }
 
-const std::vector<Node>& RRT::getTree() const 
-{
-    return tree;
-}
-
-
-Vec2 RRT::randomPoint(const OccupancyGrid& grid) const 
-{
-    static std::mt19937 rng(std::random_device{}());
-
-    std::uniform_real_distribution<double> xDist(
-        0, grid.getWidth()
-    );
-
-    std::uniform_real_distribution<double> yDist(
-        0, grid.getHeight()
-    );
-
-    return Vec2(xDist(rng), yDist(rng));
-}
-
-
-bool RRT::isCollisionFree(const Vec2&a, const Vec2&b, const OccupancyGrid& grid) const 
+bool RRT::collisionFree(
+    const Vec2& a,
+    const Vec2& b,
+    const OccupancyGrid& grid) const
 {
     const int samples = 20;
-    
-    for (int i=0; i<=samples; i++) {
-        double t = (double) i / samples;
-        Vec2 p = a + (b-a) * t;
+
+    for (int i = 0; i <= samples; i++)
+    {
+        double t = (double)i / samples;
+
+        Vec2 p = a + (b - a) * t;
 
         int gx = static_cast<int>(p.x / grid.getCellSize());
         int gy = static_cast<int>(p.y / grid.getCellSize());
 
         if (gx < 0 || gx >= grid.getWidth() ||
-        gy < 0 || gy >= grid.getHeight())
+            gy < 0 || gy >= grid.getHeight())
             return false;
 
         if (grid.getProbability(gx, gy) > 0.7)
             return false;
     }
+
     return true;
 }
 
-
-std::vector<Vec2> RRT::buildPath(
-    const Vec2& start,
-    const Vec2& goal,
-    const OccupancyGrid& grid
-) 
-
-{
-    reset(start);
-    tree.emplace_back(start,-1);
-    
-    const int maxIterations = 5000;
-    
-    for (int i = 0; i<= 5000; i++) {
-        Vec2 sample = randomPoint(grid);
-        int nearest = nearestNode(sample);
-
-        Vec2 newPoint =
-            steer(tree[nearest].position, sample);
-        
-        if (!isCollisionFree(tree[nearest].position, newPoint, grid))
-            continue;
-        
-        tree.emplace_back(newPoint, nearest);
-
-        int newIndex = tree.size() - 1;
-        
-        if ((newPoint - goal).magnitude() < goalThreshold) {
-            tree.emplace_back(goal, newIndex);
-
-            return extractPath(tree.size() - 1);
-        }
-    }
-
-    return {};
-}
-
-std::vector<Vec2> RRT::extractPath(int goalIndex) const 
+std::vector<Vec2> RRT::extractPath(int goalIndex) const
 {
     std::vector<Vec2> path;
+
     int current = goalIndex;
 
-    while (current != -1) {
+    while (current != -1)
+    {
         path.push_back(tree[current].position);
-        current = tree[current].parent;   
+        current = tree[current].parent;
     }
 
     std::reverse(path.begin(), path.end());
@@ -133,24 +109,17 @@ std::vector<Vec2> RRT::extractPath(int goalIndex) const
     return path;
 }
 
-
 bool RRT::expand(
-    const Vec2& goal, 
+    const Vec2& goal,
     const OccupancyGrid& grid,
-    std::vector<Vec2>& path
-)
+    std::vector<Vec2>& path)
 {
-    if (tree.empty()) {
-        return false;
-    }
-
     std::uniform_real_distribution<double> prob(0.0,1.0);
 
     Vec2 sample;
 
-    if(prob(rng) < 0.1)
+    if(prob(rng) < 0.15)
     {
-        // 10% chance → sample the goal directly
         sample = goal;
     }
     else
@@ -161,26 +130,58 @@ bool RRT::expand(
         sample = Vec2(xdist(rng), ydist(rng));
     }
 
-    int nearest = nearestNode(sample);
+    int nearestIndex = nearest(sample);
 
-    Vec2 newPoint =
-        steer(tree[nearest].position, sample);
+    Vec2 newPoint = steer(tree[nearestIndex].position, sample);
 
-    if (!isCollisionFree(
-            tree[nearest].position,
-            newPoint,
-            grid))
+    if(!collisionFree(tree[nearestIndex].position,newPoint,grid))
         return false;
 
-    tree.emplace_back(newPoint, nearest);
+    auto neighbors = near(newPoint);
+
+    int bestParent = nearestIndex;
+
+    double bestCost =
+        tree[nearestIndex].cost +
+        (newPoint - tree[nearestIndex].position).magnitude();
+
+    for(int idx : neighbors)
+    {
+        double cost =
+            tree[idx].cost +
+            (newPoint - tree[idx].position).magnitude();
+
+        if(cost < bestCost &&
+           collisionFree(tree[idx].position,newPoint,grid))
+        {
+            bestParent = idx;
+            bestCost = cost;
+        }
+    }
+
+    tree.emplace_back(newPoint,bestParent,bestCost);
 
     int newIndex = tree.size() - 1;
 
-    if ((newPoint - goal).magnitude() < goalThreshold)
+    for(int idx : neighbors)
     {
-        tree.emplace_back(goal, newIndex);
+        double newCost =
+            tree[newIndex].cost +
+            (tree[idx].position - newPoint).magnitude();
 
-        path = extractPath(tree.size() - 1);
+        if(newCost < tree[idx].cost &&
+           collisionFree(newPoint,tree[idx].position,grid))
+        {
+            tree[idx].parent = newIndex;
+            tree[idx].cost = newCost;
+        }
+    }
+
+    if((newPoint - goal).magnitude() < goalRadius)
+    {
+        tree.emplace_back(goal,newIndex,tree[newIndex].cost);
+
+        path = extractPath(tree.size()-1);
 
         return true;
     }

@@ -18,6 +18,7 @@
 
 #include "planning/RRT.h"
 #include "planning/PathSmoother.h"
+#include "planning/TrajectoryGenerator.h"
 
 int main()
 {
@@ -71,6 +72,11 @@ int main()
 
     bool goalSet = false;
     bool pathComputed = false;
+
+    // Dynamic replanning timer
+    double replanTimer = 0.0;
+    const double replanInterval = 1.0;
+
 
     // -------------------------
     // Environment Walls
@@ -137,6 +143,7 @@ int main()
         while (accumulator >= dt)
         {
             controller.update(dt);
+            replanTimer += dt;
 
             lidar.update(walls, world.getBodies());
 
@@ -149,18 +156,22 @@ int main()
 
             world.step(dt);
 
+            if (goalSet && replanTimer > replanInterval) {
+                rrt.reset(worldRobotBody.position);
+                path.clear();
+                pathComputed = false;
+                replanTimer = 0.0;
+            }
+
             if (goalSet && !pathComputed)
             {
                 for (int i = 0; i < 200; ++i)
                 {
                     if (rrt.expand(goal, grid, path))
                     {
-                        std::cout << "PATH FOUND\n";
-
-                        path = PathSmoother::shortcut(path, grid);
-                        std::cout << "Waypoints: " << path.size() << '\n';
-
-                        controller.setWaypoints(path);
+                        path = PathSmoother::shortcut(path, grid);   
+                        auto trajectory = TrajectoryGenerator::generate(path,5.0);
+                        controller.setWaypoints(trajectory);
                         pathComputed = true;
                         break;
                     }
