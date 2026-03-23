@@ -17,7 +17,7 @@ A high-performance 2D robotics simulation environment built from scratch. This p
 
 ---
 
-## 📐 Engineering Highlights
+## Engineering Highlights
 
 ### 1. Perception & Mapping (LIDAR)
 *   **Simulated Sensors**: Implemented a 360° LIDAR sensor using ray-casting against complex geometry (AABBs and circles) with configurable Gaussian noise profiles.
@@ -36,7 +36,7 @@ A high-performance 2D robotics simulation environment built from scratch. This p
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 *   **`include/math/`**: Custom `Vec2` library with vector calculus (Dot/Cross products, normalization).
 *   **`include/physics/`**: Rigid bodies, Collision Resolvers (Circle-Circle, Circle-AABB), and Spatial Hash Grids.
