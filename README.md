@@ -1,63 +1,76 @@
 # Autonomous Robot Navigation Simulator
+## A First-Principles Robotics Stack in C++17
 
-A 2D robotics simulation environment built from scratch in C++17. The project implements a custom physics engine, differential-drive robot model, PID-based path following, simulated LIDAR, log-odds occupancy grid mapping, RRT path planning, and path shortcutting. The user sets a goal by left-clicking in the world; the system plans a collision-free path from the robot’s current pose to the goal, shortens it via collision-safe shortcuts, and the robot executes the path using heading and speed controllers while continuously updating the map from LIDAR.
+![C++](https://img.shields.io/badge/C++-17-blue.svg) ![SFML](https://img.shields.io/badge/Graphics-SFML-green.svg) ![Robotics](https://img.shields.io/badge/Focus-Robotics%20&%20Physics-orange.svg)
 
----
-
-## Architecture
-
-**Math and rendering.** A small `Vec2` library provides vector arithmetic, dot/cross products, normalization, rotation, and distance. Rendering is handled by an SFML-based wrapper with fixed timestep (60 Hz), drawing primitives (circles, lines, filled rectangles) for bodies, LIDAR rays, occupancy grid, RRT tree, and path.
-
-**Physics.** Rigid bodies have position, velocity, angle, angular velocity, and inverse mass/inertia. The `World` steps the simulation with Euler integration, maintains a spatial hash grid for broad-phase collision detection, and resolves circle–circle and circle–AABB contacts with impulses, friction, and positional correction. The robot is a circular rigid body driven by differential-drive kinematics (wheel speeds converted to linear and angular velocity).
-
-**Robot and control.** The `Robot` wraps a world body and exposes `setWheelSpeeds` and `updateKinematics`. The `RobotController` uses two PIDs (heading and speed) to drive toward the current waypoint; when the path is a list of waypoints from the planner, the robot follows it. Waypoint lists are produced by RRT and then shortened by the path smoother.
-
-**Sensing and mapping.** A `Lidar` sensor casts rays from the robot’s pose against walls (axis-aligned boxes) and circular bodies, with optional Gaussian noise. Ranges update an `OccupancyGrid` (log-odds, world-to-grid conversion). The grid is queried for occupancy when planning and smoothing paths.
-
-**Planning.** RRT grows a tree from the robot’s position with random samples in world space and a goal bias. Edges are checked for collision against the occupancy grid. When a node lies within the goal threshold, the path is extracted by backtracking parents. `PathSmoother::shortcut` shortens the polyline by replacing subpaths with straight segments when the segment is collision-free in the grid. The resulting waypoints are sent to the robot controller.
+A high-performance 2D robotics simulation environment built from scratch. This project demonstrates a complete autonomy stack—including a custom physics engine, differential-drive kinematics, PID control, LIDAR-based sensing, Log-Odds occupancy mapping, and RRT-based path planning.
 
 ---
 
-## Features
+## 🛠 Tech Stack
 
-- **Vector math:** `Vec2` with arithmetic, dot/cross, magnitude, normalize, rotate, perpendicular, distance.
-- **Rendering:** SFML window, fixed timestep loop, draw circle/line/filled rect.
-- **Rigid-body physics:** Forces, torques, Euler integration, AABB, spatial hash, circle–circle and circle–AABB collision, impulse resolution with restitution and friction, positional correction.
-- **Differential-drive robot:** Wheel base, wheel speeds, kinematics updating body velocity and angular velocity.
-- **PID control:** Generic PID with `update(error, dt)` and output limits; heading and speed controllers; waypoint following with tolerance and stop on empty list.
-- **LIDAR:** Configurable range and beam count; ray–segment and ray–circle intersection; noise; visualization of rays.
-- **Occupancy grid:** Log-odds updates from LIDAR rays (free along ray, occupied at hit); world–grid conversion; visualization of occupied cells.
-- **RRT:** Node tree, nearest-node search, steer with step size, occupancy-grid collision check, goal bias, path extraction, tree and path visualization.
-- **Path smoothing:** Shortcutting of RRT path with collision checks against the grid before execution.
-- **Click-to-goal:** Left-click sets goal; RRT and controller reset; path planned and shortcut; robot follows; goal drawn on screen.
+*   **Language:** C++17 (Modern C++ standards)
+*   **Build System:** CMake 3.15+
+*   **Graphics & Windowing:** SFML 3 (Graphics, Window, System)
+*   **Physics:** Custom Rigid Body Euler integration with impulse resolution.
+*   **Algorithms:** RRT (Rapidly-exploring Random Tree), Path Smoothing, Log-Odds Probabilistic Mapping, PID Controllers.
 
 ---
 
-## Building and Running
+## 📐 Engineering Highlights
 
-**Prerequisites:** CMake 3.15+, C++17 compiler, SFML 3 (Graphics, Window, System). On macOS with Homebrew: `brew install sfml`.
+### 1. Perception & Mapping (LIDAR)
+*   **Simulated Sensors**: Implemented a 360° LIDAR sensor using ray-casting against complex geometry (AABBs and circles) with configurable Gaussian noise profiles.
+*   **Probabilistic Occupancy Grid**: Built a log-odds mapping system that updates cell states based on sensor data, effectively handling uncertainty and noise in real-time.
 
-**Build:**
+### 2. Path Planning & Navigation
+*   **Motion Planning**: Implemented RRT to navigate non-convex obstacle spaces, featuring a goal-biased sampling strategy.
+*   **Path Smoothing**: Developed a "shortcutting" algorithm that optimizes raw RRT polylines into direct, collision-free waypoint lists using line-of-sight checks against the occupancy grid.
 
+### 3. Physics & Robot Kinematics
+*   **Custom Physics Engine**: Built a rigid-body simulator from first principles, featuring impulse-based collision resolution (restitution/friction) and spatial partitioning (Spatial Hash Grid) for efficient broad-phase detection.
+*   **Differential Drive**: Modeled non-holonomic kinematics for two-wheeled robots, converting wheel velocities to global linear/angular motion.
+
+### 4. Control Systems
+*   **Dual-Loop PID Control**: Implemented generic PID controllers for precise heading and velocity tracking, enabling smooth waypoint transition and arrival.
+
+---
+
+## 📂 Project Structure
+
+*   **`include/math/`**: Custom `Vec2` library with vector calculus (Dot/Cross products, normalization).
+*   **`include/physics/`**: Rigid bodies, Collision Resolvers (Circle-Circle, Circle-AABB), and Spatial Hash Grids.
+*   **`include/mapping/`**: Log-Odds Occupancy Grid data structures and probability conversion logic.
+*   **`include/planning/`**: RRT implementation and Path Smoother heuristics.
+*   **`include/robot/`**: High-level `RobotController` logic and kinematics models.
+*   **`src/main.cpp`**: Entry point managing the 60Hz fixed-timestep simulation loop and SFML rendering.
+*   **`tests/`**: Unit tests for core mathematical primitives.
+
+---
+
+## 🚀 Building and Running
+
+### Prerequisites
+*   **C++17** compatible compiler
+*   **SFML 3.x** (e.g., `brew install sfml` on macOS)
+
+### Build Instructions
 ```bash
 mkdir -p build && cd build
 cmake ..
 make
 ```
 
-**Run:** From `build`, run `./simulator`. Use the mouse to left-click a goal in the window. The robot will plan an RRT path, shorten it, and drive to the goal while updating the occupancy grid from LIDAR. The RRT tree, final path, walls, and occupied grid cells are drawn each frame.
+### Usage
+From the `build` directory, run `./simulator`.
+1.  **Set Goal**: Left-click in the simulation window.
+2.  **Observe**: Watch the RRT tree expand, smooth the path, and the robot execute navigation while updating its local occupancy map in real-time.
 
 ---
 
-## Project Structure
+## 📈 Future Improvements
 
-- **`CMakeLists.txt`** — Build configuration and source list.
-- **`include/`** — Headers: `math/` (Vec2, Ray), `physics/` (RigidBody, World, Collision, Resolver, AABB, SpatialHashGrid, Box, Robot), `rendering/Renderer.h`, `control/PID.h`, `robot/RobotController.h`, `sensors/Lidar.h`, `mapping/OccupancyGrid.h`, `planning/Node.h`, `planning/RRT.h`, `planning/PathSmoother.h`.
-- **`src/`** — Implementations: `main.cpp`, `math/Ray.cpp`, `physics/*.cpp`, `sensors/Lidar.cpp`, `planning/RRT.cpp`, `planning/PathSmoother.cpp`.
-- **`tests/`** — `vec2_test.cpp` for vector math.
-
----
-
-## Possible Extensions
-
-Cubic spline or B-spline path smoothing would yield smoother trajectories. Automatic replanning (e.g., when the robot reaches the goal or when the map changes) would support multi-goal or dynamic environments. Re-enabling or tuning wall collision response in the physics step would keep the robot from passing through boundaries when desired.
+*   **Global SLAM**: Transition from a local occupancy grid to a global pose-graph SLAM integration.
+*   **Advanced Smoothing**: Implement Cubic B-Splines or Quintic Hermite Splines for smoother velocity profiles.
+*   **Dynamic Obstacles**: Enhance the physics engine to support moving bodies and implement velocity-space obstacles (VO/RVO) for avoidance.
+*   **DWA Controller**: Implement a Dynamic Window Approach for better local trajectory planning in dense environments.
