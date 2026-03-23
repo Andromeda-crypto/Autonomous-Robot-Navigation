@@ -7,7 +7,7 @@ A high-performance 2D robotics simulation environment built from scratch. This p
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 *   **Language:** C++17 (Modern C++ standards)
 *   **Build System:** CMake 3.15+
@@ -48,7 +48,7 @@ A high-performance 2D robotics simulation environment built from scratch. This p
 
 ---
 
-## 🚀 Building and Running
+##  Building and Running
 
 ### Prerequisites
 *   **C++17** compatible compiler
@@ -68,7 +68,7 @@ From the `build` directory, run `./simulator`.
 
 ---
 
-## 📈 Future Improvements
+## Future Improvements
 
 *   **Global SLAM**: Transition from a local occupancy grid to a global pose-graph SLAM integration.
 *   **Advanced Smoothing**: Implement Cubic B-Splines or Quintic Hermite Splines for smoother velocity profiles.
